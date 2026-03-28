@@ -1,102 +1,102 @@
-# 汽车评估分类器 —— 多模型对比项目
+# Car Evaluation Classifier — Multi-Model Comparison
 
-## 1. 项目简介
+## 1. Introduction
 
-本项目基于汽车评估数据集，对车辆进行分类预测。通过对数据集的探索与分析，分别使用了 **7 种机器学习模型** 在训练集上进行训练，并在测试集上进行预测与评估，最终对比各模型的表现。
+This project explores the Car Evaluation dataset to classify vehicle acceptability. **7 machine learning models** were trained on the training set and evaluated on the test set to compare their performance.
 
-## 2. 数据集
+## 2. Dataset
 
-数据集来源于 **Car Evaluation Database**，最初由 DEX 专家系统的简单层次决策模型衍生而来（M. Bohanec, V. Rajkovic: Expert system for decision making. Sistemica 1(1), pp. 145-157, 1990）。
+The dataset comes from the **Car Evaluation Database**, originally derived from a simple hierarchical decision model developed for the DEX expert system (M. Bohanec, V. Rajkovic: Expert system for decision making. Sistemica 1(1), pp. 145-157, 1990).
 
-该模型按照以下概念结构对汽车进行评估：
+The model evaluates cars according to the following concept structure:
 
 ```
-CAR（汽车评估）          —— 汽车可接受程度
-├── PRICE（价格）        —— 综合价格
-│   ├── buying           —— 购买价格
-│   └── maint            —— 维护价格
-└── TECH（技术特性）
-    ├── COMFORT（舒适度）
-    │   ├── doors        —— 车门数量
-    │   ├── persons      —— 载客人数
-    │   └── lug_boot     —— 行李箱大小
-    └── safety           —— 预估安全性
+CAR Evaluation              car acceptability
+├── PRICE                   overall price
+│   ├── buying              buying price
+│   └── maint               maintenance price
+└── TECH                    technical characteristics
+    ├── COMFORT
+    │   ├── doors           number of doors
+    │   ├── persons         capacity in terms of persons to carry
+    │   └── lug_boot        size of luggage boot
+    └── safety              estimated safety of the car
 ```
 
-数据集移除了中间层次结构信息，直接将 **6 个输入属性**（buying、maint、doors、persons、lug_boot、safety）与目标分类（CAR）关联。
+The dataset removes intermediate structural information and directly relates the **6 input attributes** (buying, maint, doors, persons, lug_boot, safety) to the target class (CAR).
 
-## 3. 模型与结果
+## 3. Models & Results
 
-| 模型 | 准确率 |
-|------|--------|
+| Model | Accuracy |
+|-------|----------|
 | KNN | 94.13% |
-| 朴素贝叶斯 | 74.34% |
-| 感知机 | 68.05% |
-| 逻辑回归 | 73.68% |
-| 随机森林 | **97.42%** |
-| 线性 SVC | 74.69% |
-| 决策树 | 97.24% |
+| Naïve Bayes | 74.34% |
+| Perceptron | 68.05% |
+| Logistic Regression | 73.68% |
+| Random Forest | **97.42%** |
+| Linear SVC | 74.69% |
+| Decision Tree | 97.24% |
 
-### (a) KNN（K 近邻）
+### (a) KNN (K-Nearest Neighbors)
 
-- **数据预处理：** 读取数据后，使用映射函数对 DataFrame 进行转码，再转换为字典形式，按 7:3 划分训练集和测试集。
-- **模型构建：** 为数据添加特征标签并升序排列，通过测试确定最佳 K 值，对"评估"结果进行加权处理。
-- **准确率：94.13%**，同时计算了运行时间，并将预测结果附加到测试集末尾。
+- **Preprocessing:** Read the data, transcoded the DataFrame using a mapping function, converted it to dictionary form, and split training/test sets at a 7:3 ratio.
+- **Modeling:** Added feature labels and sorted in ascending order. Determined the optimal K value through testing and applied weighting to the "evaluation" results.
+- **Accuracy: 94.13%** — Also computed running time and appended predictions to the test set.
 
-### (b) 朴素贝叶斯（Naïve Bayes）
+### (b) Naïve Bayes
 
-- **数据预处理：** 使用 sklearn 的 `LabelEncoder()` 将所有字符串数据转换为整数，前 800 条数据作为训练集，其余为测试集。
-- **模型构建：** 调用 `NaiveBayesClassifier()` 算法实现贝叶斯分类。
-- **准确率：74.34%**
+- **Preprocessing:** Used sklearn's `LabelEncoder()` to convert all string data to integers. The first 800 samples form the training set; the rest are the test set.
+- **Modeling:** Implemented Bayesian classification by calling the `NaiveBayesClassifier()` algorithm.
+- **Accuracy: 74.34%**
 
-### (c) 感知机（Perceptron）
+### (c) Perceptron
 
-- **数据预处理：** 将数据预处理功能封装为函数，便于后续调用。
-- **模型构建：** 设置学习率，将"评估"的三个参数转换为三维矩阵。随机初始化 W 和 b 的值，在训练过程中使用偏导数累积更新参数。
-- **准确率：68.05%**，结果不够理想，可能是 W 和 b 的初始值不够合适。
+- **Preprocessing:** Encapsulated data preprocessing into a reusable function.
+- **Modeling:** Set the learning rate and converted the three "evaluation" parameters into a 3D matrix. Randomly initialized W and b, then updated them via accumulated partial derivatives during training.
+- **Accuracy: 68.05%** — The suboptimal result is likely due to inappropriate initial values of W and b.
 
-### (d) 逻辑回归（Logistic Regression）
+### (d) Logistic Regression
 
-- **数据预处理：** 读取并转码数据，使用 sklearn 的 `train_test_split()` 划分训练集和测试集。
-- **模型构建：** 使用 sklearn 内置模型进行训练。由于初始准确率不理想，通过学习曲线分析发现准确率随数据量增加而下降，于是尝试使用 `GridSearch` 调整正则化参数。
-- **准确率：73.68%**，作为不平衡分类问题，准确率并非最佳评估标准。
+- **Preprocessing:** Read and transcoded the data, then used sklearn's `train_test_split()` to split training and test sets.
+- **Modeling:** Trained with sklearn's built-in model. After observing low initial accuracy and a learning curve showing accuracy decreasing with more data, `GridSearch` was used to tune the regularization parameter.
+- **Accuracy: 73.68%** — As an imbalanced classification problem, accuracy alone is not the ideal evaluation metric.
 
-### (e) 随机森林（Random Forest） ⭐ 最佳模型
+### (e) Random Forest ⭐ Best Model
 
-- **数据预处理：** 使用 sklearn 的 `train_test_split()` 划分训练集和测试集。
-- **模型构建：** 使用 sklearn 内置随机森林算法，初始准确率约 95%。通过以下调优步骤持续提升：
-  1. 分析 `n_estimators` 对模型的影响，在 `n_estimators=30` 时达到最佳效果（约 96.3%），之后开始过拟合。
-  2. 分析 `max_features` 的影响，`max_features=5` 时效果最佳。
-  3. 使用 `GridSearch` 搜索最优参数组合。
-- **最终准确率：97.42%**，为本项目中表现最好的模型。
+- **Preprocessing:** Used sklearn's `train_test_split()` to split training and test sets.
+- **Modeling:** Used sklearn's built-in Random Forest algorithm with an initial accuracy of ~95%. Further tuning steps:
+  1. Analyzed the effect of `n_estimators` — best performance at `n_estimators=30` (~96.3%); overfitting occurs beyond that.
+  2. Analyzed the effect of `max_features` — best result at `max_features=5`.
+  3. Used `GridSearch` to find the optimal parameter combination.
+- **Final Accuracy: 97.42%** — The best-performing model in this project.
 
-### (f) 线性 SVC（Linear SVC）
+### (f) Linear SVC
 
-- **数据预处理：** 使用 sklearn 的 `train_test_split()` 划分训练集和测试集。
-- **模型构建：** 使用 sklearn 内置 Linear SVC 算法。
-- **准确率：74.69%**
+- **Preprocessing:** Used sklearn's `train_test_split()` to split training and test sets.
+- **Modeling:** Used sklearn's built-in Linear SVC algorithm.
+- **Accuracy: 74.69%**
 
-### (g) 决策树（Decision Tree）
+### (g) Decision Tree
 
-- **数据预处理：** 使用 sklearn 的 `train_test_split()` 划分训练集和测试集。
-- **模型构建：** 使用 sklearn 内置决策树算法。
-- **准确率：97.24%**
+- **Preprocessing:** Used sklearn's `train_test_split()` to split training and test sets.
+- **Modeling:** Used sklearn's built-in Decision Tree algorithm.
+- **Accuracy: 97.24%**
 
-## 4. 项目文件说明
+## 4. Project Files
 
-| 文件 | 说明 |
-|------|------|
-| `KNN.ipynb` | KNN 模型 |
-| `Naïve Bayes.ipynb` | 朴素贝叶斯模型 |
-| `Perceptron.ipynb` | 感知机模型 |
-| `Logistic Regression.ipynb` | 逻辑回归模型 |
-| `Random_Forest.ipynb` | 随机森林模型 |
-| `Linear SVC.ipynb` | 线性 SVC 模型 |
-| `Decision Tree.ipynb` | 决策树模型 |
-| `training.csv` | 训练数据集 |
-| `test.csv` | 测试数据集 |
-| `test_RandomForest.csv` | 随机森林测试结果 |
+| File | Description |
+|------|-------------|
+| `KNN.ipynb` | KNN model |
+| `Naïve Bayes.ipynb` | Naïve Bayes model |
+| `Perceptron.ipynb` | Perceptron model |
+| `Logistic Regression.ipynb` | Logistic Regression model |
+| `Random_Forest.ipynb` | Random Forest model |
+| `Linear SVC.ipynb` | Linear SVC model |
+| `Decision Tree.ipynb` | Decision Tree model |
+| `training.csv` | Training dataset |
+| `test.csv` | Test dataset |
+| `test_RandomForest.csv` | Random Forest test results |
 
-## 5. 总结
+## 5. Conclusion
 
-在本项目的 7 个模型中，**随机森林（97.42%）** 和 **决策树（97.24%）** 表现最优，KNN（94.13%）紧随其后。线性模型（逻辑回归、线性 SVC、朴素贝叶斯）和感知机的准确率相对较低，说明该数据集的分类边界具有较强的非线性特征，更适合使用集成学习或树模型来处理。
+Among the 7 models, **Random Forest (97.42%)** and **Decision Tree (97.24%)** achieved the best performance, followed by KNN (94.13%). Linear models (Logistic Regression, Linear SVC, Naïve Bayes) and the Perceptron yielded relatively lower accuracy, indicating that the dataset's classification boundaries are highly nonlinear and better suited for ensemble learning or tree-based models.
